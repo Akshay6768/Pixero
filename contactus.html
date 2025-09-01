@@ -516,139 +516,183 @@
 
 
 
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
-    <script>document.getElementById("comment-form").addEventListener("submit", function (e) {
-            e.preventDefault();
+    const firebaseConfig = {
+        apiKey: "AIzaSyCau9WO46zgDa-HwvwbRTTV0yu2C5cu4EI",
+        authDomain: "pixero-a1f4d.firebaseapp.com",
+        projectId: "pixero-a1f4d",
+        storageBucket: "pixero-a1f4d.firebasestorage.app",
+        messagingSenderId: "84885389510",
+        appId: "1:84885389510:web:fafa53f6e6506c75c357c7",
+        measurementId: "G-0V2V73WEYB"
+    };
 
-            let name = document.getElementById("name").value.trim();
-            let message = document.getElementById("message").value.trim();
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-            if (!name || !message) {
-                alert("Please enter both your name and message.");
-                return;
-            }
+    // Global variables to track slider state
+    let sliderInterval = null;
+    let isSliderInitialized = false;
 
-            let formData = { name, message };
+    // Submit review to Firestore
+    document.getElementById("comment-form").addEventListener("submit", async function (e) {
+        e.preventDefault();
 
-            fetch("http://127.0.0.1:5000/submit_review", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData),
-            })
-                .then((response) => response.json())
-                .then((data) => {
-                    alert(data.message);
-                    document.getElementById("comment-form").reset();
-                    // Instead of completely refreshing, add the new comment
-                    addNewComment({
-                        name: name,
-                        message: message,
-                        created_at: new Date().toISOString()
-                    });
-                })
-                .catch((error) => console.error("Error:", error));
-        });
+        let name = document.getElementById("name").value.trim();
+        let message = document.getElementById("message").value.trim();
 
-        // Global variables to track slider state
-        let sliderInterval = null;
-        let isSliderInitialized = false;
-
-        function fetchReviews() {
-            fetch("http://127.0.0.1:5000/get_reviews")
-                .then((response) => response.json())
-                .then((data) => {
-                    let commentsList = document.getElementById("comments-list");
-                    commentsList.innerHTML = ""; // Clear old comments
-
-                    // Initialize with existing comments
-                    data.reviews.forEach((review) => {
-                        let commentDiv = createCommentElement(review);
-                        commentsList.appendChild(commentDiv);
-                    });
-
-                    // Start the slider if we have enough comments
-                    if (data.reviews.length >= 3) {
-                        initializeSlider();
-                    }
-                })
-                .catch((error) => console.error("Error:", error));
+        if (!name || !message) {
+            alert("Please enter both your name and message.");
+            return;
         }
 
-        function createCommentElement(review) {
-            let commentDiv = document.createElement("div");
-            commentDiv.classList.add("comment");
-            commentDiv.innerHTML = `
-        <div class="comment-header">
-            <span class="comment-author">${review.name}</span>
-            <span class="comment-date">${new Date(review.created_at).toLocaleDateString()}</span>
-        </div>
-        <div class="comment-content">
-            <p>${review.message}</p>
-        </div>
-    `;
-            return commentDiv;
-        }
+        try {
+            // Add review to Firestore
+            const docRef = await addDoc(collection(db, "reviews"), {
+                name: name,
+                message: message,
+                created_at: serverTimestamp()
+            });
 
-        function addNewComment(review) {
+            alert("Review submitted successfully!");
+            document.getElementById("comment-form").reset();
+
+            // Add the new comment to display
+            addNewComment({
+                name: name,
+                message: message,
+                created_at: new Date().toISOString()
+            });
+
+        } catch (error) {
+            console.error("Error submitting review:", error);
+            alert("Failed to submit review. Please try again.");
+        }
+    });
+
+    // Fetch reviews from Firestore
+    async function fetchReviews() {
+        try {
+            const q = query(collection(db, "reviews"), orderBy("created_at", "desc"));
+            const querySnapshot = await getDocs(q);
+            
             let commentsList = document.getElementById("comments-list");
-            let newComment = createCommentElement(review);
+            commentsList.innerHTML = ""; // Clear old comments
 
-            // Add new comment to the end without disrupting animation
-            commentsList.appendChild(newComment);
+            const reviews = [];
+            querySnapshot.forEach((doc) => {
+                const reviewData = doc.data();
+                // Handle serverTimestamp which might be null initially
+                const createdAt = reviewData.created_at ? reviewData.created_at.toDate() : new Date();
+                
+                reviews.push({
+                    id: doc.id,
+                    name: reviewData.name,
+                    message: reviewData.message,
+                    created_at: createdAt.toISOString()
+                });
+            });
 
-            // If this is the third comment and slider isn't running, start it
-            if (commentsList.children.length >= 3 && !isSliderInitialized) {
+            // Initialize with existing comments
+            reviews.forEach((review) => {
+                let commentDiv = createCommentElement(review);
+                commentsList.appendChild(commentDiv);
+            });
+
+            // Start the slider if we have enough comments
+            if (reviews.length >= 3) {
                 initializeSlider();
             }
+
+        } catch (error) {
+            console.error("Error fetching reviews:", error);
         }
+    }
 
-        function initializeSlider() {
-            if (isSliderInitialized) return; // Prevent multiple initializations
+    function createCommentElement(review) {
+        let commentDiv = document.createElement("div");
+        commentDiv.classList.add("comment");
+        commentDiv.innerHTML = `
+            <div class="comment-header">
+                <span class="comment-author">${review.name}</span>
+                <span class="comment-date">${new Date(review.created_at).toLocaleDateString()}</span>
+            </div>
+            <div class="comment-content">
+                <p>${review.message}</p>
+            </div>
+        `;
+        return commentDiv;
+    }
 
-            isSliderInitialized = true;
-            let commentsList = document.getElementById("comments-list");
-            let currentIndex = 0;
+    function addNewComment(review) {
+        let commentsList = document.getElementById("comments-list");
+        let newComment = createCommentElement(review);
 
-            // Create a continuous sliding effect
-            sliderInterval = setInterval(() => {
-                // Get current height of the first two comments (for accurate slide distance)
-                const firstComment = commentsList.children[currentIndex];
-                const secondComment = commentsList.children[currentIndex + 1];
+        // Add new comment to the beginning (since we want newest first)
+        commentsList.insertBefore(newComment, commentsList.firstChild);
 
-                if (!firstComment || !secondComment) return; // Safety check
-
-                const slideDistance = firstComment.offsetHeight + secondComment.offsetHeight + 20; // 20px for gaps
-
-                // Apply smooth transition
-                commentsList.style.transition = "transform 1s ease-in-out";
-                commentsList.style.transform = `translateY(-${slideDistance}px)`;
-
-                // After animation completes
-                setTimeout(() => {
-                    // Reset transform without animation
-                    commentsList.style.transition = "none";
-                    commentsList.style.transform = "translateY(0)";
-
-                    // Move the first two comments to the end
-                    commentsList.appendChild(firstComment);
-                    commentsList.appendChild(secondComment);
-
-                    // Update index (stays at 0 since we've moved elements)
-                    currentIndex = 0;
-                }, 1000);
-            }, 3000);
+        // If this is the third comment and slider isn't running, start it
+        if (commentsList.children.length >= 3 && !isSliderInitialized) {
+            initializeSlider();
         }
+    }
 
-        document.addEventListener("DOMContentLoaded", fetchReviews);
+    function initializeSlider() {
+        if (isSliderInitialized) return; // Prevent multiple initializations
 
-        // Cleanup function to prevent memory leaks if needed
-        function stopSlider() {
-            if (sliderInterval) {
-                clearInterval(sliderInterval);
-                sliderInterval = null;
-                isSliderInitialized = false;
-            }
-        }</script>
+        isSliderInitialized = true;
+        let commentsList = document.getElementById("comments-list");
+        let currentIndex = 0;
+
+        // Create a continuous sliding effect
+        sliderInterval = setInterval(() => {
+            // Get current height of the first two comments (for accurate slide distance)
+            const firstComment = commentsList.children[currentIndex];
+            const secondComment = commentsList.children[currentIndex + 1];
+
+            if (!firstComment || !secondComment) return; // Safety check
+
+            const slideDistance = firstComment.offsetHeight + secondComment.offsetHeight + 20; // 20px for gaps
+
+            // Apply smooth transition
+            commentsList.style.transition = "transform 1s ease-in-out";
+            commentsList.style.transform = `translateY(-${slideDistance}px)`;
+
+            // After animation completes
+            setTimeout(() => {
+                // Reset transform without animation
+                commentsList.style.transition = "none";
+                commentsList.style.transform = "translateY(0)";
+
+                // Move the first two comments to the end
+                commentsList.appendChild(firstComment);
+                commentsList.appendChild(secondComment);
+
+                // Update index (stays at 0 since we've moved elements)
+                currentIndex = 0;
+            }, 1000);
+        }, 3000);
+    }
+
+    // Cleanup function to prevent memory leaks if needed
+    function stopSlider() {
+        if (sliderInterval) {
+            clearInterval(sliderInterval);
+            sliderInterval = null;
+            isSliderInitialized = false;
+        }
+    }
+
+    // Initialize when DOM is loaded
+    document.addEventListener("DOMContentLoaded", fetchReviews);
+
+    // Export functions globally if needed by other scripts
+    window.stopSlider = stopSlider;
+    window.fetchReviews = fetchReviews;
+</script>
 
 
 </body>
