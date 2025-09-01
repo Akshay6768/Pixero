@@ -749,8 +749,22 @@ footer {
     }
 }
 
-
-
+.creator-number {
+    position: absolute;
+    bottom: 30px;
+    left: 20px;
+    color: var(--dark-bg);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 75px;
+    font-family: system-ui;
+    z-index: 50;
+}
 
 
 
