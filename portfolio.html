@@ -398,6 +398,66 @@
                 font-size: 1.5rem;
             }
         }
+
+        .payment-method.clickable {
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.payment-method.clickable:hover {
+  background-color: #0a0a0a;
+  color: var(--dark-bg);
+}
+
+.qr-modal {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  justify-content: center;
+  align-items: center;
+}
+
+.qr-modal-content {
+  background-color: var(--card-bg);
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+  position: relative;
+  max-width: 350px;
+  width: 90%;
+}
+
+.close-qr {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.close-qr:hover {
+  color: var(--primary-yellow);
+}
+
+.qr-container {
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.qr-instructions {
+  margin-top: 15px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
     </style>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -425,178 +485,7 @@
     <div class="portfolio-container" id="portfolio-content">
         <!-- Content will be loaded dynamically -->
     </div>
-
-   
-
-
-<!-- 
-    <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-analytics.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
-
-  // Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyCau9WO46zgDa-HwvwbRTTV0yu2C5cu4EI",
-    authDomain: "pixero-a1f4d.firebaseapp.com",
-    projectId: "pixero-a1f4d",
-    storageBucket: "pixero-a1f4d.firebasestorage.app",
-    messagingSenderId: "84885389510",
-    appId: "1:84885389510:web:fafa53f6e6506c75c357c7",
-    measurementId: "G-0V2V73WEYB"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const db = getFirestore(app);
-
-  // DOM Ready
-  document.addEventListener("DOMContentLoaded", async function () {
-    const urlParams = new URLSearchParams(window.location.search);
-    const creatorId = urlParams.get('creator_id');
-
-    const loader = document.getElementById('loader');
-    const content = document.getElementById('portfolio-content');
-
-    if (!creatorId) {
-      content.innerHTML = '<div class="section"><h3>Error</h3><p>No creator ID specified.</p></div>';
-      loader.classList.add('hidden');
-      return;
-    }
-
-    try {
-      const docRef = doc(db, "creators", creatorId);
-      const docSnap = await getDoc(docRef);
-
-      if (!docSnap.exists()) {
-        throw new Error("Creator not found in Firestore");
-      }
-
-      const creator = docSnap.data();
-
-      const services = creator.services || [];
-      const portfolio = creator.portfolio || [];
-      const payment_methods = creator.payment_methods || [];
-
-      const creatorData = {
-        creator,
-        services,
-        portfolio,
-        payment_methods
-      };
-
-      displayCreatorDetails(creatorData);
-    } catch (error) {
-      console.error("Error fetching creator from Firestore:", error);
-      content.innerHTML = `
-        <div class="section">
-          <h3>Error</h3>
-          <p>Failed to load creator details. Please try again later.</p>
-        </div>
-      `;
-    } finally {
-      loader.classList.add('hidden');
-    }
-  });
-
-  function displayCreatorDetails(data) {
-    const creator = data.creator;
-    const services = data.services || [];
-    const portfolio = data.portfolio || [];
-    const paymentMethods = data.payment_methods || [];
-
-    const content = document.getElementById('portfolio-content');
-
-    let html = `
-      <div class="profile-section">
-        <div class="profile-image">
-          <img src="data:image/jpeg;base64,${creator.profile_photo}" alt="${creator.full_name}" 
-          onerror="this.onerror=null; this.src='https://static.vecteezy.com/system/resources/thumbnails/005/544/718/small_2x/profile-icon-design-free-vector.jpg';">
-        </div>
-        <div class="profile-details">
-          <h2>${creator.full_name}</h2>
-          <div class="info-item"><label>Location:</label><span class="info-value">${creator.location}</span></div>
-          <div class="info-item"><label>Experience:</label><span class="info-value">${creator.experience} years</span></div>
-          <div class="info-item"><label>Phone:</label><span class="info-value">${creator.phone}</span></div>
-          <div class="info-item"><label>Email:</label><span class="info-value">${creator.email}</span></div>
-          ${creator.website ? `<div class="info-item"><label>Website:</label><span class="info-value"><a href="${creator.website}" target="_blank" style="color: var(--primary-yellow);">${creator.website}</a></span></div>` : ''}
-          ${creator.instagram ? `<div class="info-item"><label>Instagram:</label><span class="info-value"><a href="https://instagram.com/${creator.instagram.replace('@', '')}" target="_blank" style="color: var(--primary-yellow);">${creator.instagram}</a></span></div>` : ''}
-          <div class="availability-badge">${formatAvailability(creator.availability)}</div>
-        </div>
-      </div>
-    `;
-
-    html += `<div class="section bio-section"><h3>About</h3><p>${creator.bio}</p></div>`;
-
-    if (creator.equipment) {
-      html += `<div class="section"><h3>Equipment</h3><p>${creator.equipment}</p></div>`;
-    }
-
-    if (services.length > 0) {
-      html += `<div class="section"><h3>Services</h3><div class="services-list">`;
-      services.forEach(service => {
-        html += `<div class="service-card"><div class="service-name">${service.service_name}</div><div class="service-price">₹${service.price} per ${service.unit}</div></div>`;
-      });
-      html += `</div></div>`;
-    }
-
-    if (portfolio.length > 0) {
-      html += `<div class="section"><h3>Portfolio</h3><div class="portfolio-links">`;
-      portfolio.forEach(item => {
-        html += `<div class="portfolio-link"><a href="${item.portfolio_link}" target="_blank"><span>View Work</span><span>→</span></a></div>`;
-      });
-      html += `</div></div>`;
-    }
-
-    if (paymentMethods.length > 0) {
-      html += `<div class="section"><h3>Payment Methods</h3><div class="payment-methods">`;
-      paymentMethods.forEach(method => {
-        html += `<div class="payment-method">${formatPaymentMethod(method.method)}</div>`;
-      });
-      html += `</div></div>`;
-    }
-
-    html += `
-      <div class="section"><h3>Contact</h3>
-        <div class="contact-section">
-          <div class="contact-item whatsapp">
-            <div class="contact-icon"><i class="fab fa-whatsapp"></i></div>
-            <div class="contact-info"><a href="https://wa.me/${creator.phone}" target="_blank">WhatsApp</a></div>
-          </div>
-          <div class="contact-item email">
-            <div class="contact-icon"><i class="fas fa-envelope"></i></div>
-            <div class="contact-info"><a href="https://mail.google.com/mail/?view=cm&to=${creator.email}" target="_blank">Email</a></div>
-          </div>
-          ${creator.instagram ? `<div class="contact-item instagram"><div class="contact-icon"><i class="fab fa-instagram"></i></div><div class="contact-info"><a href="https://instagram.com/${creator.instagram.replace('@', '')}" target="_blank">Instagram</a></div></div>` : ''}
-        </div>
-      </div>
-    `;
-
-    content.innerHTML = html;
-  }
-
-  function formatAvailability(value) {
-    const map = {
-      'full-time': 'Full Time',
-      'part-time': 'Part Time',
-      'weekends': 'Weekends Only',
-      'custom': 'Custom Schedule'
-    };
-    return map[value] || value;
-  }
-
-  function formatPaymentMethod(method) {
-    const map = {
-      'bank-transfer': 'Bank Transfer',
-      'paypal': 'PayPal',
-      'credit-card': 'Credit Card',
-      'cash': 'Cash'
-    };
-    return map[method] || method;
-  }
-</script> -->
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
@@ -618,6 +507,62 @@
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
   const db = getFirestore(app);
+
+  // Make QR functions global so they can be accessed by onclick handlers
+  window.generateQRCode = function(paymentMethod, phone, creatorName) {
+    const modal = document.getElementById('qrModal');
+    const title = document.getElementById('qrTitle');
+    const container = document.getElementById('qrCodeContainer');
+    const instructions = document.getElementById('qrInstructions');
+    
+    // Clear previous QR code
+    container.innerHTML = '';
+    
+    let qrData = '';
+    let instructionText = '';
+    
+    if (paymentMethod.toLowerCase() === 'upi') {
+      // UPI QR format: upi://pay?pa=VPA&pn=NAME&cu=CURRENCY
+      qrData = `upi://pay?pa=${phone}@paytm&pn=${encodeURIComponent(creatorName)}&cu=INR`;
+      title.textContent = 'UPI Payment QR Code';
+      instructionText = 'Scan this QR code with any UPI app (GPay, PhonePe, Paytm, etc.) to make payment';
+    } else if (paymentMethod.toLowerCase() === 'paypal') {
+      // PayPal QR format
+      qrData = `https://paypal.me/${phone}`;
+      title.textContent = 'PayPal Payment QR Code';
+      instructionText = 'Scan this QR code to open PayPal payment page';
+    }
+    
+    if (qrData) {
+      // Create QR code
+      const canvas = document.createElement('canvas');
+      container.appendChild(canvas);
+      
+      const qr = new QRious({
+        element: canvas,
+        value: qrData,
+        size: 200,
+        background: 'white',
+        foreground: 'black',
+        level: 'M'
+      });
+      
+      instructions.textContent = instructionText;
+      modal.style.display = 'flex';
+    }
+  };
+
+  window.closeQRModal = function() {
+    document.getElementById('qrModal').style.display = 'none';
+  };
+
+  // Close modal when clicking outside of it
+  window.onclick = function(event) {
+    const modal = document.getElementById('qrModal');
+    if (event.target === modal) {
+      modal.style.display = 'none';
+    }
+  };
 
   // DOM Ready
   document.addEventListener("DOMContentLoaded", async function () {
@@ -735,10 +680,10 @@
       html += `</div></div>`;
     }
 
-    // Enhanced payment methods handling
+    // Enhanced payment methods handling with QR code support
     if (paymentMethods.length > 0) {
       html += `<div class="section"><h3>Payment Methods</h3><div class="payment-methods">`;
-      paymentMethods.forEach(method => {
+      paymentMethods.forEach((method, index) => {
         // Handle both string and object formats
         let methodName = '';
         if (typeof method === 'string') {
@@ -750,12 +695,14 @@
           methodName = Object.values(method)[0] || method.toString();
         }
         
-        html += `<div class="payment-method">${formatPaymentMethod(methodName)}</div>`;
+        const isClickable = ['upi', 'paypal'].includes(methodName.toLowerCase());
+        html += `<div class="payment-method ${isClickable ? 'clickable' : ''}" 
+                 ${isClickable ? `onclick="generateQRCode('${methodName}', '${creator.phone}', '${creator.full_name}')"` : ''}>
+                 ${formatPaymentMethod(methodName)}
+                 ${isClickable ? ' <span style="font-size: 12px; opacity: 0.7;">(Click for QR)</span>' : ''}
+               </div>`;
       });
       html += `</div></div>`;
-    } else {
-      // Show fallback if no payment methods are available
-      html += `<div class="section"><h3>Payment Methods</h3><div class="payment-methods"><div class="payment-method">Contact for payment options</div></div></div>`;
     }
 
     html += `
@@ -770,6 +717,14 @@
             <div class="contact-info"><a href="https://mail.google.com/mail/?view=cm&to=${creator.email}" target="_blank">Email</a></div>
           </div>
           ${creator.instagram ? `<div class="contact-item instagram"><div class="contact-icon"><i class="fab fa-instagram"></i></div><div class="contact-info"><a href="https://instagram.com/${creator.instagram.replace('@', '')}" target="_blank">Instagram</a></div></div>` : ''}
+        </div>
+      </div>
+      <div id="qrModal" class="qr-modal" style="display: none;">
+        <div class="qr-modal-content">
+          <span class="close-qr" onclick="closeQRModal()">&times;</span>
+          <h3 id="qrTitle">Payment QR Code</h3>
+          <div id="qrCodeContainer" class="qr-container"></div>
+          <p id="qrInstructions" class="qr-instructions"></p>
         </div>
       </div>
     `;
@@ -819,6 +774,65 @@
     return map[methodStr] || method.charAt(0).toUpperCase() + method.slice(1);
   }
 </script>
+
+<!-- QR Code functions - moved outside module scope to be globally accessible -->
+<script>
+  function generateQRCode(paymentMethod, phone, creatorName) {
+    const modal = document.getElementById('qrModal');
+    const title = document.getElementById('qrTitle');
+    const container = document.getElementById('qrCodeContainer');
+    const instructions = document.getElementById('qrInstructions');
+    
+    // Clear previous QR code
+    container.innerHTML = '';
+    
+    let qrData = '';
+    let instructionText = '';
+    
+    if (paymentMethod.toLowerCase() === 'upi') {
+      // UPI QR format: upi://pay?pa=VPA&pn=NAME&cu=CURRENCY
+      qrData = `upi://pay?pa=${phone}@paytm&pn=${encodeURIComponent(creatorName)}&cu=INR`;
+      title.textContent = 'UPI Payment QR Code';
+      instructionText = 'Scan this QR code with any UPI app (GPay, PhonePe, Paytm, etc.) to make payment';
+    } else if (paymentMethod.toLowerCase() === 'paypal') {
+      // PayPal QR format
+      qrData = `https://paypal.me/${phone}`;
+      title.textContent = 'PayPal Payment QR Code';
+      instructionText = 'Scan this QR code to open PayPal payment page';
+    }
+    
+    if (qrData) {
+      // Create QR code
+      const canvas = document.createElement('canvas');
+      container.appendChild(canvas);
+      
+      const qr = new QRious({
+        element: canvas,
+        value: qrData,
+        size: 200,
+        background: 'white',
+        foreground: 'black',
+        level: 'M'
+      });
+      
+      instructions.textContent = instructionText;
+      modal.style.display = 'flex';
+    }
+  }
+
+  function closeQRModal() {
+    document.getElementById('qrModal').style.display = 'none';
+  }
+
+  // Close modal when clicking outside of it
+  window.addEventListener('click', function(event) {
+    const modal = document.getElementById('qrModal');
+    if (event.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
+</script>
+
 </body>
 
 </html>
