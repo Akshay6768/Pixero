@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creator Login</title>
+    <style>
+        :root {
+            --primary-color: #FFD700;
+            --secondary-color: #FFC107;
+            --accent-color: #FFF59D;
+            --light-bg: #F8F9FA;
+            --dark-bg: #000000;
+            --text-light: #F8F9FA;
+            --text-dark: #222222;
+            --danger: #E74C3C;
+            --danger-hover: #C0392B;
+            --success: #2ECC71;
+            --warning: #F39C12;
+            --border-radius: 10px;
+            --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-container {
+            background-color: #222;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            border: 1px solid var(--primary-color);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            color: var(--primary-color);
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--accent-color);
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: #333;
+            border: 1px solid #444;
+            border-radius: var(--border-radius);
+            color: var(--text-light);
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .btn {
+            padding: 12px 25px;
+            font-weight: 600;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: var(--dark-bg);
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .otp-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .otp-inputs {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .otp-input {
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            font-size: 20px;
+            border-radius: var(--border-radius);
+            border: 1px solid #444;
+            background-color: #333;
+            color: var(--text-light);
+        }
+
+        .otp-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            display: none;
+        }
+
+        .success {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .error {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .resend-otp {
+            text-align: center;
+            margin-top: 15px;
+            color: #aaa;
+            cursor: pointer;
+        }
+
+        .resend-otp:hover {
+            color: var(--primary-color);
+        }
+
+        .demo-otp {
+            background-color: rgba(255, 215, 0, 0.1);
+            border: 1px dashed var(--primary-color);
+            padding: 10px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            margin-top: 15px;
+            color: var(--primary-color);
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+            
+            .otp-input {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1><i class="fas fa-camera-retro"></i> Creator Portal</h1>
+        </div>
+
+        <div id="emailForm">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" class="form-control" placeholder="Enter your registered email">
+            </div>
+            <button id="sendOtpBtn" class="btn btn-primary">
+                <i class="fas fa-paper-plane"></i> Send OTP
+            </button>
+        </div>
+
+        <div id="otpForm" class="otp-container">
+            <p style="color: #ccc; margin-bottom: 15px; text-align: center;">
+                We've sent a 6-digit OTP to your email. Please enter it below.
+            </p>
+            <div class="otp-inputs">
+                <input type="text" class="otp-input" maxlength="1" data-index="0">
+                <input type="text" class="otp-input" maxlength="1" data-index="1">
+                <input type="text" class="otp-input" maxlength="1" data-index="2">
+                <input type="text" class="otp-input" maxlength="1" data-index="3">
+                <input type="text" class="otp-input" maxlength="1" data-index="4">
+                <input type="text" class="otp-input" maxlength="1" data-index="5">
+            </div>
+            <div id="demoOtp" class="demo-otp">
+                Demo OTP: <span id="otpDisplay"></span>
+            </div>
+            <button id="verifyOtpBtn" class="btn btn-primary">
+                <i class="fas fa-check-circle"></i> Verify OTP
+            </button>
+            <div id="otpMessage" class="message"></div>
+            <div class="resend-otp" id="resendOtp">
+                Didn't receive OTP? <span style="color: var(--primary-color);">Resend</span>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCau9WO46zgDa-HwvwbRTTV0yu2C5cu4EI",
+            authDomain: "pixero-a1f4d.firebaseapp.com",
+            projectId: "pixero-a1f4d",
+            storageBucket: "pixero-a1f4d.firebasestorage.app",
+            messagingSenderId: "84885389510",
+            appId: "1:84885389510:web:fafa53f6e6506c75c357c7",
+            measurementId: "G-0V2V73WEYB"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // DOM elements
+        const emailForm = document.getElementById('emailForm');
+        const otpForm = document.getElementById('otpForm');
+        const sendOtpBtn = document.getElementById('sendOtpBtn');
+        const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+        const emailInput = document.getElementById('email');
+        const otpInputs = document.querySelectorAll('.otp-input');
+        const otpMessage = document.getElementById('otpMessage');
+        const resendOtp = document.getElementById('resendOtp');
+        const demoOtp = document.getElementById('demoOtp');
+        const otpDisplay = document.getElementById('otpDisplay');
+
+        // Store generated OTP and email
+        let generatedOtp = '';
+        let userEmail = '';
+        let otpExpiryTime = 0;
+        const OTP_VALID_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+        // OTP input navigation
+        otpInputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value.length === 1 && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && index > 0 && !e.target.value) {
+                    otpInputs[index - 1].focus();
+                }
+            });
+        });
+
+        // Generate a 6-digit OTP
+        function generateOtp() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        // Show message
+        function showMessage(text, type) {
+            otpMessage.textContent = text;
+            otpMessage.className = `message ${type}`;
+            otpMessage.style.display = 'block';
+
+            setTimeout(() => {
+                otpMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        // Send OTP button click
+        sendOtpBtn.addEventListener('click', async () => {
+            const email = emailInput.value.trim();
+            
+            if (!email) {
+                showMessage('Please enter your email address', 'error');
+                return;
+            }
+
+            try {
+                sendOtpBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                sendOtpBtn.disabled = true;
+
+                // Check if email exists in creators collection
+                const creatorsRef = collection(db, "creators");
+                const q = query(creatorsRef, where("email", "==", email));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    throw new Error('No creator found with this email');
+                }
+
+                // Generate a 6-digit OTP
+                generatedOtp = generateOtp();
+                userEmail = email;
+                otpExpiryTime = Date.now() + OTP_VALID_DURATION;
+
+                // For demo purposes, show the OTP on screen
+                otpDisplay.textContent = generatedOtp;
+                demoOtp.style.display = 'block';
+
+                // In a real app, you would send this OTP to the user's email
+                console.log(`OTP for ${email}: ${generatedOtp}`);
+
+                // Show OTP form
+                emailForm.style.display = 'none';
+                otpForm.style.display = 'block';
+                otpInputs[0].focus();
+
+                showMessage(`OTP sent to ${email}`, 'success');
+            } catch (error) {
+                showMessage(error.message, 'error');
+            } finally {
+                sendOtpBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send OTP';
+                sendOtpBtn.disabled = false;
+            }
+        });
+
+        // Verify OTP button click
+        verifyOtpBtn.addEventListener('click', () => {
+            const enteredOtp = Array.from(otpInputs).map(input => input.value).join('');
+
+            if (enteredOtp.length !== 6) {
+                showMessage('Please enter the complete 6-digit OTP', 'error');
+                return;
+            }
+
+            // Check if OTP is expired
+            if (Date.now() > otpExpiryTime) {
+                showMessage('OTP has expired. Please request a new one.', 'error');
+                return;
+            }
+
+            if (enteredOtp === generatedOtp) {
+                verifyOtpBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+                verifyOtpBtn.disabled = true;
+
+                // OTP is correct - redirect to profile page with creator ID
+                findCreatorIdByEmail(userEmail)
+                    .then(creatorId => {
+                        window.location.href = `profile.html?creator_id=${creatorId}`;
+                    })
+                    .catch(error => {
+                        showMessage('Error: ' + error.message, 'error');
+                        verifyOtpBtn.innerHTML = '<i class="fas fa-check-circle"></i> Verify OTP';
+                        verifyOtpBtn.disabled = false;
+                    });
+            } else {
+                showMessage('Invalid OTP. Please try again.', 'error');
+            }
+        });
+
+        // Resend OTP
+        resendOtp.addEventListener('click', () => {
+            generatedOtp = generateOtp();
+            otpExpiryTime = Date.now() + OTP_VALID_DURATION;
+            otpDisplay.textContent = generatedOtp;
+            
+            // Clear previous OTP inputs
+            otpInputs.forEach(input => input.value = '');
+            otpInputs[0].focus();
+            
+            console.log(`New OTP for ${userEmail}: ${generatedOtp}`);
+            showMessage('New OTP sent to your email', 'success');
+        });
+
+        // Helper function to find creator ID by email
+        async function findCreatorIdByEmail(email) {
+            const creatorsRef = collection(db, "creators");
+            const q = query(creatorsRef, where("email", "==", email));
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty) {
+                throw new Error('No creator found with this email');
+            }
+
+            // Return the first matching creator's ID
+            return querySnapshot.docs[0].id;
+        }
+    </script>
+</body>
+</html>
