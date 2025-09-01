@@ -100,7 +100,7 @@ nav ul li a.active {
 @keyframes backgroundSlide {
     0% { background-image: url('img1.jpg'); }
     25% { background-image: url('img2.jpg'); }
-    50% { background-image: url('img6.jpg'); }
+    50% { background-image: url('img6.JPG'); }
     75% { background-image: url('img4.jpg'); }
     100% { background-image: url('img1.jpg'); }
 }
@@ -748,6 +748,7 @@ footer {
         justify-content: center;
     }
 }
+
 
 
 
