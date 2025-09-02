@@ -268,54 +268,152 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  document.getElementById("creator-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
+//   document.getElementById("creator-form").addEventListener("submit", async (e) => {
+//     e.preventDefault();
 
-    const form = e.target;
+//     const form = e.target;
 
-    // Collect services with prices
-    const selectedServices = {};
-    form.querySelectorAll('input[type="checkbox"][name="services"]:checked').forEach((checkbox) => {
-      const service = checkbox.value;
-      const priceInput = checkbox.closest('.service-item').querySelector('input[type="number"]');
-      selectedServices[service] = priceInput?.value || null;
-    });
+//     // Collect services with prices
+//     const selectedServices = {};
+//     form.querySelectorAll('input[type="checkbox"][name="services"]:checked').forEach((checkbox) => {
+//       const service = checkbox.value;
+//       const priceInput = checkbox.closest('.service-item').querySelector('input[type="number"]');
+//       selectedServices[service] = priceInput?.value || null;
+//     });
 
-    // Collect portfolio links
-    const portfolioInputs = form.querySelectorAll('input[name="portfolio[]"]');
-    const portfolioLinks = Array.from(portfolioInputs).map(input => input.value).filter(link => link !== '');
+//     // Collect portfolio links
+//     const portfolioInputs = form.querySelectorAll('input[name="portfolio[]"]');
+//     const portfolioLinks = Array.from(portfolioInputs).map(input => input.value).filter(link => link !== '');
 
-    // Collect payment methods
-    const paymentMethods = Array.from(form.querySelectorAll('input[name="payment_methods"]:checked')).map(el => el.value);
+//     // Collect payment methods
+//     const paymentMethods = Array.from(form.querySelectorAll('input[name="payment_methods"]:checked')).map(el => el.value);
 
-    // Collect data
-    const data = {
-      creator_type: form.creator_type.value,
-      full_name: form.full_name.value,
-      email: form.email.value,
-      phone: form.phone.value,
-      location: form.location.value,
-      experience: form.experience.value,
-      equipment: form.equipment.value,
-      bio: form.bio.value,
-      website: form.website.value,
-      instagram: form.instagram.value,
-      availability: form.availability.value,
-      services: selectedServices,
-      portfolio_links: portfolioLinks,
-      payment_methods: paymentMethods,
-      created_at: new Date().toISOString()
-    };
+//     // Collect data
+//     const data = {
+//       creator_type: form.creator_type.value,
+//       full_name: form.full_name.value,
+//       email: form.email.value,
+//       phone: form.phone.value,
+//       location: form.location.value,
+//       experience: form.experience.value,
+//       equipment: form.equipment.value,
+//       bio: form.bio.value,
+//       website: form.website.value,
+//       instagram: form.instagram.value,
+//       availability: form.availability.value,
+//       services: selectedServices,
+//       portfolio_links: portfolioLinks,
+//       payment_methods: paymentMethods,
+//       created_at: new Date().toISOString()
+//     };
 
-    try {
-      await addDoc(collection(db, "creators"), data);
-      document.getElementById("success-message").classList.remove("hidden");
-      form.reset();
-    } catch (error) {
-      alert("Failed to submit. Please try again.");
-      console.error("Error adding document: ", error);
+//     try {
+//       await addDoc(collection(db, "creators"), data);
+//       document.getElementById("success-message").classList.remove("hidden");
+//       form.reset();
+//     } catch (error) {
+//       alert("Failed to submit. Please try again.");
+//       console.error("Error adding document: ", error);
+//     }
+//   });
+
+
+
+// Replace your existing service collection code with this:
+
+document.getElementById("creator-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const form = e.target;
+
+  // Collect services with prices - FIXED FORMAT
+  const services = [];
+  form.querySelectorAll('input[type="checkbox"][name="services"]:checked').forEach((checkbox) => {
+    const service = checkbox.value;
+    const priceInput = checkbox.closest('.service-item').querySelector('input[type="number"]');
+    const price = priceInput?.value;
+    
+    if (price) {
+      // Create service object in the expected format
+      let serviceName = '';
+      let unit = 'photo'; // default unit
+      
+      // Map service values to display names and units
+      switch(service) {
+        case 'photo-editing':
+          serviceName = 'Photo Editing';
+          unit = 'photo';
+          break;
+        case 'color-grading':
+          serviceName = 'Video Editing';
+          unit = 'video'; // Note: your HTML says "per photo" but should be "per video"
+          break;
+        case 'retouching':
+          serviceName = 'Retouching';
+          unit = 'photo';
+          break;
+        case 'compositing':
+          serviceName = 'Compositing';
+          unit = 'project';
+          break;
+        case 'batch-processing':
+          serviceName = 'Batch Processing';
+          unit = '100 photos';
+          break;
+        default:
+          serviceName = service.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
+          unit = 'item';
+      }
+      
+      services.push({
+        service_name: serviceName,
+        price: price,
+        unit: unit
+      });
     }
   });
+
+  // Collect portfolio links - FIXED FORMAT
+  const portfolioInputs = form.querySelectorAll('input[name="portfolio[]"]');
+  const portfolio = Array.from(portfolioInputs)
+    .map(input => input.value.trim())
+    .filter(link => link !== '')
+    .map(link => ({
+      portfolio_link: link
+    }));
+
+  // Collect payment methods
+  const paymentMethods = Array.from(form.querySelectorAll('input[name="payment_methods"]:checked')).map(el => el.value);
+
+  // Collect data
+  const data = {
+    creator_type: form.creator_type.value,
+    full_name: form.full_name.value,
+    email: form.email.value,
+    phone: form.phone.value,
+    location: form.location.value,
+    experience: form.experience.value,
+    equipment: form.equipment.value,
+    bio: form.bio.value,
+    website: form.website.value,
+    instagram: form.instagram.value,
+    availability: form.availability.value,
+    hourly_rate: form.hourly_rate?.value || null, // Add this if you have hourly rate field
+    services: services,        // Now in correct array format
+    portfolio: portfolio,      // Now in correct array format  
+    payment_methods: paymentMethods,
+    created_at: new Date().toISOString()
+  };
+
+  try {
+    await addDoc(collection(db, "creators"), data);
+    document.getElementById("success-message").classList.remove("hidden");
+    form.reset();
+  } catch (error) {
+    alert("Failed to submit. Please try again.");
+    console.error("Error adding document: ", error);
+  }
+});
 </script>
 
 
