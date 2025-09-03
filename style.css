@@ -150,6 +150,15 @@ nav ul li a.active {
     margin: 2rem 0;
 }
 
+
+.logo-image {
+    height: 2rem; /* Adjust height as needed */
+    width: auto; /* Maintains aspect ratio */
+    vertical-align: middle; /* Aligns with text */
+    border-radius: 8px;
+}
+
+
 .btn {
     padding: 0.8rem 2rem;
     border-radius: 30px;
@@ -765,6 +774,7 @@ footer {
     font-family: system-ui;
     z-index: 50;
 }
+
 
 
 
